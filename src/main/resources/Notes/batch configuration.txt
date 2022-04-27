@@ -1,0 +1,7 @@
+1. Persistent – in case if we want to save the information in OS in case of application/runtime restart.
+2. Max entries – max keys we want to store in OS
+3. Entry ttl – time to live is defining the life/duration of key after which the key will get expired. E.g. say 1 hour, so after an hour key will get expired
+4. Expiration interval – is defined to tell mule runtime when to collect expired keys from object store. Appropriate time is half of ttl
+
+note : Entry TTL is how long an entry should live in the cache. Expiration interval is how frequently the object store will check the entries to see if one entry should be deleted
+https://stackoverflow.com/questions/62058422/how-cache-entrys-valid-period-is-calculated-in-mule4

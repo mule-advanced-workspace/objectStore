@@ -1,0 +1,299 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:os="http://www.mulesoft.org/schema/mule/os"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<os:object-store name="Object_store"
+		doc:name="Object store" doc:id="26d53d94-02f2-4650-ac74-c14b173e71d0"
+		maxEntries="5" entryTtl="30" entryTtlUnit="MINUTES" />
+	<flow name="object-store-exampleFlow"
+		doc:id="dbb0eb5b-3ca7-40e4-aa99-48c197c19154">
+		<http:listener doc:name="Listener"
+			doc:id="ef47bfb1-d795-4021-87e7-3f13eb42ada0"
+			path="store" config-ref="HTTP_Listener_config"/>
+		<logger level="INFO" doc:name="Logger"
+			doc:id="69f6e864-11f7-48fc-83df-02eefd2e69ba"
+			message='"Input sent is "  #[payload]' />
+		<os:store doc:id="682bda09-c8f0-4303-bbf5-481d1ad72511"
+			key="#[payload.key]" objectStore="Object_store">
+			<os:value><![CDATA[#[payload.value]]]></os:value>
+
+		</os:store>
+		<logger level="INFO" doc:name="Logger"
+			doc:id="6c656205-431a-4f00-95dd-c3eb9fb7a491"
+			message="Value stored in the OS" />
+
+	</flow>
+
+	<flow name="object-store-retrieveFlow"
+		doc:id="326e94db-69e1-44e7-8222-367c561529d4">
+
+		<http:listener doc:name="Listener"
+			doc:id="974ac375-74cd-42cb-88f9-aa12510536e5"
+			path="retrieve" config-ref="HTTP_Listener_config"/>
+
+		<os:retrieve doc:name="Retrieve"
+			doc:id="d91011f7-16df-46c5-afa3-07777e875c76" key="#[payload.key]"
+			objectStore="Object_store">
+
+			<os:default-value><![CDATA[Default Value]]></os:default-value>
+
+		</os:retrieve>
+
+		<logger level="INFO" doc:name="Logger"
+			doc:id="0c179448-dd31-4b6f-8113-0ac7670ae793"
+			message="Retrieved Value is '  #[payload]" />
+
+		<ee:transform doc:name="Transform Message"
+			doc:id="c28ddad9-de9d-4ee3-9aed-009a0235a3d7">
+
+			<ee:message>
+
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload as String]]></ee:set-payload>
+
+			</ee:message>
+
+		</ee:transform>
+
+	</flow>
+
+	<flow name="object-store-containsFlow"
+		doc:id="4afcc901-0998-44d1-89ff-cb9e5a3c877b">
+
+		<http:listener doc:name="Listener"
+			doc:id="5a6e8bbf-d962-4e10-b681-a0d28fe3f835"
+			path="contain" config-ref="HTTP_Listener_config"/>
+
+		<logger level="INFO" doc:name="Logger"
+			doc:id="ae5e9837-7fb8-408e-92bb-1900373e2e11"
+			message="'Value passed to check :' + #[payload]" />
+
+		<os:contains doc:name="Contains"
+			doc:id="98bca386-bdad-4a48-9418-6a6aba895b25" key="#[payload.key]"
+			objectStore="Object_store" />
+
+		<ee:transform doc:name="Transform Message"
+			doc:id="2fbc6821-7aaa-4722-a5f6-cecd6356fe6a">
+
+			<ee:message>
+
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+
+			</ee:message>
+
+		</ee:transform>
+
+		<logger level="INFO" doc:name="Logger"
+			doc:id="bb6e52c8-24de-4e1b-8d45-35c7e51553e2"
+			message="'Result after Cotain operation is '  #[payload]" />
+
+	</flow>
+
+	<flow name="object-store-RetrieveAllKeysFlow"
+		doc:id="198cb97b-2637-4b91-b6a5-02cb6c072613">
+
+		<http:listener doc:name="Listener"
+			doc:id="461b7846-da10-49a0-96fd-8648588dd82e"
+			path="Retrieveallkeys" config-ref="HTTP_Listener_config"/>
+
+		<os:retrieve-all-keys
+			doc:name="Retrieve all keys"
+			doc:id="18c141c6-cd80-4886-aa76-33fa9c2ea58b"
+			objectStore="Object_store" />
+
+		<logger level="INFO" doc:name="Logger"
+			doc:id="4765008c-25c2-4e2a-8efb-aff2bbc89dbd"
+			message='"Retreived keys are " #[payload]' />
+
+		<ee:transform doc:name="Transform Message"
+			doc:id="a4bef25b-f1e4-44cf-acf1-e87088245403">
+
+			<ee:message>
+
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload ]]></ee:set-payload>
+
+			</ee:message>
+
+		</ee:transform>
+
+	</flow>
+
+	<flow name="object-store-RetrieveAllFlow"
+		doc:id="16dc9fa5-dc2f-4f74-addc-2570e20d0d97">
+
+		<http:listener doc:name="Listener"
+			doc:id="fc8bb099-72e5-4c93-8322-0a937acae9a0"
+			path="retrieveall" config-ref="HTTP_Listener_config"/>
+
+		<logger level="INFO" doc:name="Logger"
+			doc:id="38e8a9d2-3053-4256-a335-967d0e8893ef"
+			message="'Lets see what are the values in the Object Store'" />
+
+		<os:retrieve-all doc:name="Retrieve all"
+			doc:id="13e83a81-144f-441c-92a0-80901069c44f"
+			objectStore="Object_store" />
+		<ee:transform doc:name="Transform Message"
+			doc:id="0f5b9dfb-9dc8-411b-b71c-093c6f7bd6ed">
+
+			<ee:message>
+
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload mapObject (value, key ) -> 
+{
+    "$(key)" : read(value,'application/json')
+}
+
+]]></ee:set-payload>
+
+			</ee:message>
+
+		</ee:transform>
+
+		<logger level="INFO" doc:name="Logger"
+			doc:id="1bb965ff-956d-4250-9d6c-52a2bd5f837e"
+			message="'Values are '  #[payload]" />
+
+	</flow>
+
+	<flow name="object-store-removeFlow"
+		doc:id="b3789bd9-da98-49fc-aee0-84224242f8f9">
+
+		<http:listener doc:name="Listener"
+			doc:id="54cc91f1-feb2-49e1-bf99-a20a655af398"
+			path="remove" config-ref="HTTP_Listener_config"/>
+
+		<logger level="INFO" doc:name="Logger"
+			doc:id="9034e460-07de-4bc9-96e9-0ef6c11b98c8"
+			message='"Values inside object store before Remove Operation :: "' />
+
+		<set-variable value="#[payload.key]"
+			doc:name="Set Variable" doc:id="402eb599-1649-4910-be5c-8c77d3b1e3ab"
+			variableName="KeytoRemove" />
+
+		<os:retrieve-all doc:name="Retrieve all"
+			doc:id="a1ffa855-e315-476c-af48-5ec396f25d83"
+			objectStore="Object_store" />
+
+		<ee:transform doc:name="Transform Message"
+			doc:id="6176d4ca-ce4f-4c9a-bb84-10197a120555">
+
+			<ee:message>
+
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload mapObject (value, key ) -> 
+{
+    "$(key)" : read(value,'application/json')
+}
+
+]]></ee:set-payload>
+
+			</ee:message>
+
+		</ee:transform>
+
+		<logger level="INFO" doc:name="Logger"
+			doc:id="04e76b2f-f337-42bb-a610-51e87c112062" message="#[payload]" />
+
+		<os:remove doc:name="Remove"
+			doc:id="8e3a9a3a-fe3e-4d83-a784-cef7fbf1111d"
+			key="#[vars.KeytoRemove]" objectStore="Object_store" />
+
+		<logger level="INFO" doc:name="Logger"
+			doc:id="86d86610-44ae-4570-b785-eea42f6959c1"
+			message="'Values inside object store after Remove Operation '" />
+
+		<os:retrieve-all doc:name="Retrieve all"
+			doc:id="aeacb5a6-3134-4234-9ac8-6ad29cdbe728"
+			objectStore="Object_store" />
+
+		<ee:transform doc:name="Transform Message"
+			doc:id="7effbfb2-04b6-48ef-9cdc-bb3aed7e5161">
+
+			<ee:message>
+
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload mapObject (value, key ) -> 
+{
+    "$(key)" : read(value,'application/json')
+}
+
+]]></ee:set-payload>
+
+			</ee:message>
+
+		</ee:transform>
+
+		<logger level="INFO" doc:name="Logger"
+			doc:id="7389b24b-16e7-4ad4-99fb-c74e71d73026" message="#[payload]" />
+
+	</flow>
+
+	<flow name="object-store-clearFlow"
+		doc:id="a1c8c31a-86da-4855-9085-96c62c85fc21">
+
+		<http:listener doc:name="Listener"
+			doc:id="8f3ac8a4-cd91-4eda-ac4d-25209e1911cb"
+			path="clear" config-ref="HTTP_Listener_config"/>
+
+		<logger level="INFO" doc:name="Logger"
+			doc:id="2f06b9e7-9f85-478e-8516-a6445ea714d3"
+			message='"Values inside object store before clear Operation :: "' />
+
+		<os:retrieve-all doc:name="Retrieve all"
+			doc:id="5145db33-5d27-4a3f-901e-bf2514fff686"
+			objectStore="Object_store" />
+		<ee:transform doc:name="Transform Message"
+			doc:id="5c90e1f8-0cbb-499d-acf3-7a047cf0eaa0">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload mapObject (value, key ) -> 
+{
+    "$(key)" : read(value,'application/json')
+}
+
+]]></ee:set-payload>
+
+			</ee:message>
+
+		</ee:transform>
+
+		<logger level="INFO" doc:name="Logger"
+			doc:id="103dad5b-cdc5-4b0a-bb00-98a8bff2275e" message="#[payload]" />
+
+		<os:clear doc:name="Clear"
+			doc:id="87f36ba2-bdc6-4796-9632-86242ad69ddc"
+			objectStore="Object_store" />
+
+		<logger level="INFO" doc:name="Logger"
+			doc:id="dd3db5c5-67c7-41ac-ab57-78ab7aa160cf"
+			message="'Values inside object store after Contain Operation '" />
+
+		<os:retrieve-all doc:name="Retrieve all"
+			doc:id="2ca19c9c-6338-4cdc-bd82-348a2b67d9f9"
+			objectStore="Object_store" />
+
+		<logger level="INFO" doc:name="Logger"
+			doc:id="f0fd41f3-231a-4906-bb9b-6e693f84eb29" message="#[payload]" />
+
+	</flow>
+</mule>
